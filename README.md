@@ -42,7 +42,7 @@ The CTAT voltage falls and the PTAT term rises with temperature. Their sum gives
 BGR1V2/
 ├── README.md
 ├── schematic/   Xschem schematic (.sch)
-├── netlist/     Netlist, save file and ngspice testbench
+├── netlist/     Netlist (with the simulation script) and save file
 ├── images/      Schematic and simulation plots
 └── results/     Raw simulation data (not tracked)
 ```
@@ -51,10 +51,10 @@ BGR1V2/
 
 ```
 cd netlist
-ngspice BGR1V2_tb.spice
+ngspice BGR1V2.spice
 ```
 
-The testbench runs the temperature sweep, supply sweep, Vref vs VDD over temperature, and PSRR. It prints a summary at the end.
+The simulation script in the netlist runs the temperature sweep, supply sweep, Vref vs VDD over temperature, and PSRR. It prints a summary at the end.
 
 ## Tools
 
