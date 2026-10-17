@@ -36,6 +36,10 @@ The CTAT voltage falls and the PTAT term rises with temperature. Their sum gives
 ### PSRR
 ![PSRR](images/PSRR.png)
 
+## Design notes
+
+**Startup circuit required.** A bandgap has a second stable operating point with zero current, and at power-up it can settle there with Vref at 0 V. A startup circuit is needed to push the core out of that state. Once the loop is in its normal operating point, the startup circuit must turn off so it does not draw current or disturb Vref.
+
 ## Repository structure
 
 ```
