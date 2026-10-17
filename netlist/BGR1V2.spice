@@ -1,0 +1,98 @@
+** sch_path: /foss/designs/BGR1V2.sch
+**.subckt BGR1V2
+XQ1 0 0 net6 pnpMPA a=1.4e-12 p=5.4e-06
+XQ2 0 0 net1 pnpMPA a=1.4e-12 p=5.4e-06 m=8
+XQ3 0 0 CTAT pnpMPA a=1.4e-12 p=5.4e-06
+XM2 net6 Vb VDD VDD sg13_hv_pmos w=9.5u l=2u ng=1 m=1 mm_ok=1
+XM3 Vref Vb VDD VDD sg13_hv_pmos w=9.5u l=2u ng=1 m=1 mm_ok=1
+VDD VDD GND 3.3
+XM5 Vb net6 net5 0 sg13_hv_nmos w=10u l=10u ng=1 m=16 mm_ok=1
+XM6 net3 net2 net5 0 sg13_hv_nmos w=10u l=10u ng=1 m=16 mm_ok=1
+XM4 Vb net3 VDD VDD sg13_hv_pmos w=8u l=10u ng=2 m=1 mm_ok=1
+XM8 net3 net3 VDD VDD sg13_hv_pmos w=8u l=10u ng=1 m=1 mm_ok=1
+XM7 net5 net3 net4 0 sg13_hv_nmos w=1.6u l=10u ng=1 m=1 mm_ok=1
+XR2 net2 net1 0 rppd w=0.5e-6 l=53.2e-6 m=1 b=0 mm_ok=1
+XM9 net4 net3 0 0 sg13_hv_nmos w=1.6u l=10u ng=1 m=1 mm_ok=1
+XM11 net2 Vb VDD VDD sg13_hv_pmos w=9.5u l=2u ng=1 m=1 mm_ok=1
+XR11 Vref net7 0 rppd w=0.5e-6 l=53.2e-6 m=1 b=0 mm_ok=1
+XR12 net7 net8 0 rppd w=0.5e-6 l=53.2e-6 m=1 b=0 mm_ok=1
+XR13 net8 net9 0 rppd w=0.5e-6 l=53.2e-6 m=1 b=0 mm_ok=1
+XR14 net9 net10 0 rppd w=0.5e-6 l=53.2e-6 m=1 b=0 mm_ok=1
+XR15 net10 net11 0 rppd w=0.5e-6 l=53.2e-6 m=1 b=0 mm_ok=1
+XR16 net11 net12 0 rppd w=0.5e-6 l=53.2e-6 m=1 b=0 mm_ok=1
+XR17 net12 net13 0 rppd w=0.5e-6 l=53.2e-6 m=1 b=0 mm_ok=1
+XR18 net13 CTAT 0 rppd w=0.5e-6 l=53.2e-6 m=1 b=0 mm_ok=1
+**** begin user architecture code
+
+
+.include BGR1V2.save
+.control
+save all
+
+* ---------- Temperature sweep (VDD = 3.3 V) ----------
+dc temp -40 125 1
+let ptat = v(vref) - v(ctat)
+let itot = -i(vdd)*1e6
+let vmax = vecmax(v(vref))
+let vmin = vecmin(v(vref))
+let v27  = v(vref)[67]
+let tc   = (vmax - vmin)/(v27*165)*1e6
+let i27  = itot[67]
+set v27s = $&v27
+set tcs  = $&tc
+set is   = $&i27
+plot v(vref) title 'Vref vs Temperature' xlabel 'Temp [C]' ylabel 'Vref [V]'
+plot v(vref) v(ctat) ptat title 'Vref = CTAT + PTAT term vs Temperature' xlabel 'Temp [C]' ylabel 'Voltage [V]'
+plot itot    title 'Supply Current vs Temperature' xlabel 'Temp [C]' ylabel 'I [uA]'
+
+* ---------- Supply sweep (27 C) ----------
+option temp=27
+dc VDD 0 3.6 0.05
+let lr = (v(vref)[72] - v(vref)[50])/1.1/v(vref)[66]*100
+set lrs = $&lr
+plot v(vref) title 'Vref vs VDD' xlabel 'VDD [V]' ylabel 'Vref [V]'
+
+* ---------- Vref vs VDD over temperature  ----------
+dc VDD 0 3.6 0.05 temp 0 100 25
+let ylo = $v27s - 0.01
+let yhi = $v27s + 0.01
+set ylos = $&ylo
+set yhis = $&yhi
+plot v(vref) xlimit 2.5 3.6 ylimit $ylos $yhis title 'Vref vs VDD, T = 0..100 C' xlabel 'VDD [V]' ylabel 'Vref [V]'
+
+* ---------- PSRR (27 C, VDD = 3.3 V) ----------
+option temp=27
+alter VDD ac=1
+ac dec 10 1 1e9
+let psrr = -db(v(vref))
+let psrr100 = psrr[20]
+set psrrs = $&psrr100
+plot psrr title 'PSRR' xlabel 'Freq [Hz]' ylabel 'PSRR [dB]'
+
+* ---------- Summary ----------
+echo
+echo ======== BANDGAP SUMMARY ========
+echo Vref @ 27C            = $v27s V
+echo TC (-40..125C)        = $tcs ppm/C
+echo Supply current @ 27C  = $is uA
+echo Line reg (2.5-3.6V)   = $lrs %/V
+echo PSRR @ 100Hz          = $psrrs dB
+echo =================================
+.endc
+
+
+
+
+
+
+.lib cornerMOSlv.lib mos_tt
+.lib cornerMOShv.lib mos_tt
+.lib cornerHBT.lib hbt_typ
+.lib cornerRES.lib res_typ
+.lib cornerCAP.lib cap_typ
+
+
+**** end user architecture code
+**.ends
+.GLOBAL GND
+.end
